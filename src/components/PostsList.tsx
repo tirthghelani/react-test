@@ -25,6 +25,7 @@ import {
   Container,
   Divider,
   Chip,
+  ButtonGroup,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import {
@@ -54,6 +55,11 @@ const useDebounce = (value: string, delay: number) => {
   return debouncedValue;
 };
 
+interface PostStyle {
+  color: "primary" | "secondary" | "error" | "warning" | "info" | "success";
+  variant: "h6" | "subtitle1" | "body1" | "body2";
+}
+
 const PostsList = () => {
   const dispatch = useAppDispatch();
   const posts = useAppSelector((state) => state.posts.posts);
@@ -65,8 +71,24 @@ const PostsList = () => {
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [displayedPosts, setDisplayedPosts] = useState<number>(POSTS_PER_PAGE);
   const [searchTerm, setSearchTerm] = useState("");
+  const [postStyles, setPostStyles] = useState<Record<number, PostStyle>>({});
 
   const debouncedSearchTerm = useDebounce(searchTerm, DEBOUNCE_DELAY);
+
+  const colors: PostStyle["color"][] = [
+    "primary",
+    "secondary",
+    "error",
+    "warning",
+    "info",
+    "success",
+  ];
+  const variants: PostStyle["variant"][] = [
+    "h6",
+    "subtitle1",
+    "body1",
+    "body2",
+  ];
 
   useEffect(() => {
     if (status === "idle") {
@@ -102,6 +124,20 @@ const PostsList = () => {
 
   const handlePostClick = (postId: number) => {
     navigate(`/post/${postId}`);
+  };
+
+  const handleStyleChange = (
+    postId: number,
+    type: "color" | "variant",
+    value: string
+  ) => {
+    setPostStyles((prev) => ({
+      ...prev,
+      [postId]: {
+        ...(prev[postId] || { color: "primary", variant: "h6" }),
+        [type]: value,
+      },
+    }));
   };
 
   const filteredPosts = useMemo(() => {
@@ -199,13 +235,72 @@ const PostsList = () => {
                     onClick={() => handlePostClick(post.id)}
                   >
                     <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant="h6" gutterBottom noWrap>
+                      <Typography
+                        variant={postStyles[post.id]?.variant || "h6"}
+                        color={postStyles[post.id]?.color || "primary"}
+                        gutterBottom
+                        noWrap
+                      >
                         {post.title}
                       </Typography>
+                      <Box sx={{ mb: 2 }}>
+                        <Typography
+                          variant="caption"
+                          sx={{ mb: 1, display: "block" }}
+                        >
+                          Color:
+                        </Typography>
+                        <ButtonGroup size="small" sx={{ mb: 2 }}>
+                          {colors.map((color) => (
+                            <Button
+                              key={color}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStyleChange(post.id, "color", color);
+                              }}
+                              variant={
+                                postStyles[post.id]?.color === color
+                                  ? "contained"
+                                  : "outlined"
+                              }
+                              color={color}
+                              sx={{ minWidth: "40px" }}
+                            >
+                              {color.charAt(0).toUpperCase()}
+                            </Button>
+                          ))}
+                        </ButtonGroup>
+
+                        <Typography
+                          variant="caption"
+                          sx={{ mb: 1, display: "block" }}
+                        >
+                          Variant:
+                        </Typography>
+                        <ButtonGroup size="small">
+                          {variants.map((variant) => (
+                            <Button
+                              key={variant}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStyleChange(post.id, "variant", variant);
+                              }}
+                              variant={
+                                postStyles[post.id]?.variant === variant
+                                  ? "contained"
+                                  : "outlined"
+                              }
+                              sx={{ minWidth: "40px" }}
+                            >
+                              {variant.charAt(0).toUpperCase()}
+                            </Button>
+                          ))}
+                        </ButtonGroup>
+                      </Box>
                       <Divider sx={{ my: 1 }} />
                       <Typography
                         variant="body2"
-                        color="text.secondary"
+                        color={postStyles[post.id]?.color || "text.secondary"}
                         sx={{
                           overflow: "hidden",
                           textOverflow: "ellipsis",
