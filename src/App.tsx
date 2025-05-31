@@ -1,25 +1,37 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { Container, Typography, Box } from "@mui/material";
+import PostsList from "./components/PostsList";
+import PostDetail from "./components/PostDetail";
+import AddPostForm from "./components/AddPostForm";
+import { Provider } from "react-redux";
+import { store } from "./app/store";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Provider store={store}>
+      <BrowserRouter>
+        <Container maxWidth="lg">
+          <Box sx={{ my: 4 }}>
+            <Typography variant="h3" component="h1" gutterBottom>
+              Posts Manager
+            </Typography>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <>
+                    <AddPostForm />
+                    <PostsList />
+                  </>
+                }
+              />
+              <Route path="/post/:id" element={<PostDetail />} />
+            </Routes>
+          </Box>
+        </Container>
+      </BrowserRouter>
+    </Provider>
   );
 }
 
