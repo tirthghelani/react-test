@@ -1,36 +1,88 @@
 import React from "react";
-import { Container, Typography, Box } from "@mui/material";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import {
+  Container,
+  Typography,
+  Box,
+  AppBar,
+  Toolbar,
+  Button,
+} from "@mui/material";
 import PostsList from "./components/PostsList";
 import PostDetail from "./components/PostDetail";
 import AddPostForm from "./components/AddPostForm";
+import Login from "./components/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "./app/hooks";
+import { logout } from "./features/auth/authSlice";
 
-function App() {
+const AppContent = () => {
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+
+  const handleLogout = () => {
+    dispatch(logout());
+  };
+
   return (
-    <Provider store={store}>
-      <BrowserRouter>
-        <Container maxWidth="lg">
-          <Box sx={{ my: 4 }}>
-            <Typography variant="h3" component="h1" gutterBottom>
-              Posts Manager
-            </Typography>
-            <Routes>
-              <Route
-                path="/"
-                element={
+    <>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            Posts Manager
+          </Typography>
+          {user && (
+            <Button color="inherit" onClick={handleLogout}>
+              Logout
+            </Button> 
+          )}
+        </Toolbar>
+      </AppBar>
+
+      <Container maxWidth="lg">
+        <Box sx={{ my: 4 }}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
                   <>
                     <AddPostForm />
                     <PostsList />
                   </>
-                }
-              />
-              <Route path="/post/:id" element={<PostDetail />} />
-            </Routes>
-          </Box>
-        </Container>
-      </BrowserRouter>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/post/:id"
+              element={
+                <ProtectedRoute>
+                  <PostDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Box>
+      </Container>
+    </>
+  );
+};
+
+function App() {
+  return (
+    <Provider store={store}>
+      <Router>
+        <AppContent />
+      </Router>
     </Provider>
   );
 }

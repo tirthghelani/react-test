@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import {
   fetchPosts,
@@ -7,9 +7,9 @@ import {
   Post,
 } from "../features/posts/postsSlice";
 import {
-  List,
-  ListItem,
-  ListItemText,
+  Card,
+  CardContent,
+  CardActions,
   IconButton,
   Button,
   Dialog,
@@ -22,16 +22,21 @@ import {
   CircularProgress,
   Box,
   InputAdornment,
+  Container,
+  Divider,
+  Chip,
 } from "@mui/material";
+import Grid from "@mui/material/Grid";
 import {
   Delete as DeleteIcon,
   Edit as EditIcon,
   Search as SearchIcon,
+  Article as ArticleIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
-const POSTS_PER_PAGE = 5;
-const DEBOUNCE_DELAY = 300; // 300ms delay for debouncing
+const POSTS_PER_PAGE = 6; // Changed to 6 for better grid layout
+const DEBOUNCE_DELAY = 300;
 
 const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -92,7 +97,7 @@ const PostsList = () => {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
-    setDisplayedPosts(POSTS_PER_PAGE); // Reset pagination when searching
+    setDisplayedPosts(POSTS_PER_PAGE);
   };
 
   const handlePostClick = (postId: number) => {
@@ -106,106 +111,178 @@ const PostsList = () => {
   }, [posts, debouncedSearchTerm]);
 
   if (status === "loading") {
-    return <CircularProgress />;
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (status === "failed") {
-    return <Typography color="error">{error}</Typography>;
+    return (
+      <Paper elevation={3} sx={{ p: 3, mt: 3, bgcolor: "#fff3f3" }}>
+        <Typography color="error" variant="h6">
+          Error Loading Posts
+        </Typography>
+        <Typography color="error">{error}</Typography>
+      </Paper>
+    );
   }
 
   const visiblePosts = filteredPosts.slice(0, displayedPosts);
   const hasMorePosts = filteredPosts.length > displayedPosts;
 
   return (
-    <Paper elevation={2} sx={{ mt: 3, p: 2 }}>
-      <Typography variant="h5" gutterBottom>
-        Posts
-      </Typography>
+    <Container maxWidth="lg">
+      <Paper elevation={3} sx={{ mt: 3, p: 3 }}>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+          <ArticleIcon sx={{ fontSize: 32, mr: 2, color: "primary.main" }} />
+          <Typography variant="h4" component="h1" color="primary">
+            Posts
+          </Typography>
+        </Box>
 
-      <TextField
-        fullWidth
-        margin="normal"
-        placeholder="Search posts..."
-        value={searchTerm}
-        onChange={handleSearchChange}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          ),
-        }}
-        sx={{ mb: 2 }}
-      />
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search posts..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="primary" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ mb: 4 }}
+        />
 
-      {filteredPosts.length === 0 ? (
-        <Typography color="textSecondary" align="center" sx={{ my: 2 }}>
-          No posts found matching your search
-        </Typography>
-      ) : (
-        <>
-          <List>
-            {visiblePosts.map((post) => (
-              <ListItem
-                key={post.id}
-                onClick={() => handlePostClick(post.id)}
-                sx={{
-                  cursor: "pointer",
-                  "&:hover": {
-                    backgroundColor: "action.hover",
-                  },
-                }}
-                secondaryAction={
-                  <>
-                    <IconButton
-                      edge="end"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEdit(post);
-                      }}
-                      sx={{ mr: 1 }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      edge="end"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(post.id);
-                      }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </>
-                }
-              >
-                <ListItemText primary={post.title} secondary={post.body} />
-              </ListItem>
-            ))}
-          </List>
-
-          {hasMorePosts && (
-            <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleLoadMore}
-              >
-                Load More Posts
-              </Button>
+        {filteredPosts.length === 0 ? (
+          <Paper
+            elevation={1}
+            sx={{ p: 4, textAlign: "center", bgcolor: "#f5f5f5" }}
+          >
+            <Typography color="textSecondary" variant="h6">
+              No posts found matching your search
+            </Typography>
+          </Paper>
+        ) : (
+          <>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, 1fr)",
+                  md: "repeat(2, 1fr)",
+                },
+                gap: 3,
+                width: "100%",
+              }}
+            >
+              {visiblePosts.map((post) => (
+                <Box key={post.id}>
+                  <Card
+                    elevation={2}
+                    sx={{
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      transition: "transform 0.2s, box-shadow 0.2s",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        boxShadow: 4,
+                        cursor: "pointer",
+                      },
+                    }}
+                    onClick={() => handlePostClick(post.id)}
+                  >
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom noWrap>
+                        {post.title}
+                      </Typography>
+                      <Divider sx={{ my: 1 }} />
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: "vertical",
+                        }}
+                      >
+                        {post.body}
+                      </Typography>
+                    </CardContent>
+                    <CardActions sx={{ justifyContent: "flex-end", p: 1 }}>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(post);
+                        }}
+                        sx={{ color: "primary.main" }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(post.id);
+                        }}
+                        sx={{ color: "error.main" }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </CardActions>
+                  </Card>
+                </Box>
+              ))}
             </Box>
-          )}
-        </>
-      )}
 
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
-        <DialogTitle>Edit Post</DialogTitle>
-        <DialogContent>
+            {hasMorePosts && (
+              <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleLoadMore}
+                  size="large"
+                  sx={{
+                    px: 4,
+                    py: 1,
+                    borderRadius: 2,
+                    textTransform: "none",
+                    fontSize: "1.1rem",
+                  }}
+                >
+                  Load More Posts
+                </Button>
+              </Box>
+            )}
+          </>
+        )}
+      </Paper>
+
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography variant="h5">Edit Post</Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pb: 2 }}>
           <TextField
             autoFocus
-            margin="dense"
+            margin="normal"
             label="Title"
             fullWidth
+            variant="outlined"
             value={editingPost?.title || ""}
             onChange={(e) =>
               setEditingPost((prev) =>
@@ -214,11 +291,12 @@ const PostsList = () => {
             }
           />
           <TextField
-            margin="dense"
+            margin="normal"
             label="Content"
             fullWidth
             multiline
             rows={4}
+            variant="outlined"
             value={editingPost?.body || ""}
             onChange={(e) =>
               setEditingPost((prev) =>
@@ -227,14 +305,20 @@ const PostsList = () => {
             }
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleSaveEdit} variant="contained">
-            Save
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setEditDialogOpen(false)}
+            variant="outlined"
+            color="inherit"
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleSaveEdit} variant="contained" color="primary">
+            Save Changes
           </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+    </Container>
   );
 };
 
