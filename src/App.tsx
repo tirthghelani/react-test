@@ -28,6 +28,7 @@ import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { logout } from "./features/auth/authSlice";
 import InfiniteScrollPosts from "./components/InfiniteScrollPosts";
 import DynamicForm from "./components/DynamicForm";
+import Products from "./components/Products";
 
 const AppContent = () => {
   const dispatch = useAppDispatch();
@@ -62,6 +63,7 @@ const AppContent = () => {
                 <Tab label="Home" value="/" />
                 <Tab label="Infinite Scroll" value="/infinite" />
                 <Tab label="Form Builder" value="/form-builder" />
+                <Tab label="Products" value="/products" />
               </Tabs>
               <Button color="inherit" onClick={handleLogout}>
                 Logout
@@ -99,6 +101,14 @@ const AppContent = () => {
               element={
                 <ProtectedRoute>
                   <DynamicForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/products"
+              element={
+                <ProtectedRoute>
+                  <Products />
                 </ProtectedRoute>
               }
             />
