@@ -22,11 +22,12 @@ import PostDetail from "./components/PostDetail";
 import AddPostForm from "./components/AddPostForm";
 import Login from "./components/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
-import InfiniteScrollPosts from "./components/InfiniteScrollPosts";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { logout } from "./features/auth/authSlice";
+import InfiniteScrollPosts from "./components/InfiniteScrollPosts";
+import DynamicForm from "./components/DynamicForm";
 
 const AppContent = () => {
   const dispatch = useAppDispatch();
@@ -60,6 +61,7 @@ const AppContent = () => {
               >
                 <Tab label="Home" value="/" />
                 <Tab label="Infinite Scroll" value="/infinite" />
+                <Tab label="Form Builder" value="/form-builder" />
               </Tabs>
               <Button color="inherit" onClick={handleLogout}>
                 Logout
@@ -89,6 +91,14 @@ const AppContent = () => {
               element={
                 <ProtectedRoute>
                   <InfiniteScrollPosts />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/form-builder"
+              element={
+                <ProtectedRoute>
+                  <DynamicForm />
                 </ProtectedRoute>
               }
             />
